@@ -1,8 +1,6 @@
 package parser
 
-type parseNode struct {
-	children []parseNode
-	level    int
-	line     int
-	text     string
+type node struct {
+	protonode
+	children []node
 }
