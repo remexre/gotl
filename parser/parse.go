@@ -1,9 +1,9 @@
 package parser
 
 import (
+	"fmt"
 	"strings"
 
-	"github.com/k0kubun/pp"
 	"github.com/remexre/gotl/ast"
 )
 
@@ -30,22 +30,28 @@ func Parse(filename, src string) (*ast.Document, error) {
 		})
 	}
 
-	// Next, check to ensure that the structure is "smooth" while building up a
-	// bunch of nodes instead.
-	var nodes []node
-	for len(protonodes) != 0 {
-		if protonodes[0].level != 0 {
-			return nil, protonodes[0].ErrorAt(0, "invalid indentation")
-		}
-		var err error
-		var pn node
-		pn, protonodes, err = protonodes[0].Build(protonodes)
-		if err != nil {
-			return nil, err
-		}
-		nodes = append(nodes, pn)
+	// Next, find the doctype and parse it.
+	var doc *ast.Document
+	if len(protonodes) == 0 {
+		return nil, fmt.Errorf("Invalid document: no doctype")
+	} else if doctype := protonodes[0].text; doctype != "doctype html" {
+		return nil, fmt.Errorf("Invalid document: invalid doctype: %s", doctype)
+	} else {
+		doc = &ast.Document{Doctype: doctype}
+		protonodes = protonodes[1:]
 	}
 
-	pp.Println(nodes)
-	return nil, nil
+	// Then, check to ensure that the structure is "smooth" while building up a
+	// bunch of nodes instead.
+	root, rest, err := protonodes[0].Build(protonodes)
+	if err != nil {
+		return nil, err
+	} else if len(rest) != 0 {
+		return nil, rest[0].ErrorAt(0, "unexpected content")
+	}
+
+	// Lastly, convert the nodes to AST nodes, put them into the document, and
+	// return.
+	doc.Child, err = root.ToAst()
+	return doc, err
 }
