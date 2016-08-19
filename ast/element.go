@@ -19,12 +19,12 @@ type Element struct {
 }
 
 // ChildNodes returns children of the Node.
-func (e Element) ChildNodes() []Node {
+func (e *Element) ChildNodes() []Node {
 	return e.Children
 }
 
 // Template converts the Node to a string.
-func (e Element) Template() string {
+func (e *Element) Template() string {
 	var attrs, children bytes.Buffer
 	for _, attr := range e.Attrs {
 		fmt.Fprintf(&attrs, " %s=\"%s\"",

@@ -18,14 +18,13 @@ func (n node) ToAst() (ast.Node, error) {
 		return nil, n.ErrorAt(i, errMsg)
 	}
 	if len(n.children) > 0 {
-		element := node.(ast.Element)
-		element.Children = make([]ast.Node, len(n.children))
-		for i, child := range n.children {
-			var err error
-			element.Children[i], err = child.ToAst()
+		element := node.(*ast.Element)
+		for _, child := range n.children {
+			c, err := child.ToAst()
 			if err != nil {
 				return nil, err
 			}
+			element.Children = append(element.Children, c)
 		}
 	}
 	return node, nil
@@ -38,7 +37,7 @@ func parseNode(src string) (ast.Node, int, string) {
 	}
 	if tag == "|" {
 		content := strings.TrimLeftFunc(rest, unicode.IsSpace)
-		return ast.Text(content), 0, ""
+		return ast.TextNode(content), 0, ""
 	}
 	element := ast.Element{Tag: tag}
 
@@ -50,27 +49,46 @@ func parseNode(src string) (ast.Node, int, string) {
 		r := []rune(rest)[0]
 		switch r {
 		case '#':
-			id, rest, errI, errMsg = parseTag(src[1:])
+			id, rest, errI, errMsg = parseTag(rest[1:])
 		case '.':
 			var class string
-			class, rest, errI, errMsg = parseTag(src[1:])
+			class, rest, errI, errMsg = parseTag(rest[1:])
 			classes = append(classes, class)
 		// case '(':
+		// TODO
 		// 	var attr ast.Attr
 		// 	attr, rest, errI, errMsg = parseAttr(src[1:])
 		// 	attrs = append(attrs, attr)
 		default:
 			if unicode.IsSpace(r) {
 				content = strings.TrimLeftFunc(rest, unicode.IsSpace)
+				rest = ""
 			} else {
-				errMsg = ""
+				errMsg = "invalid character"
 			}
 		}
 		if errMsg != "" {
-			return nil, 0, errMsg
+			return nil, errI, errMsg
 		}
 	}
-	return element, 0, ""
+
+	if id != "" {
+		attrs = append(attrs, ast.Attr{
+			Name:  "id",
+			Value: ast.StringLiteral(id),
+		})
+	}
+	if len(classes) > 0 {
+		attrs = append(attrs, ast.Attr{
+			Name:  "class",
+			Value: ast.StringLiteral(strings.Join(classes, " ")),
+		})
+	}
+	element.Attrs = attrs
+	if content != "" {
+		element.Children = append(element.Children, ast.TextNode(content))
+	}
+	return &element, 0, ""
 }
 
 func parseTag(src string) (tag string, rest string, errI int, errMsg string) {

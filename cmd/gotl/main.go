@@ -11,20 +11,20 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(doc)
+	fmt.Println(doc.Template())
 }
 
 const src = `doctype html
 
-html(lang="en")
+html
 	head
 		title Hello World
 	body
-		header
+		header#at-the-top
 			h1 Hello World
 		main
 			section
-				p Alpha
+				p.first Alpha
 			section
 				p Bravo`
 

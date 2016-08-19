@@ -9,12 +9,12 @@ type Document struct {
 }
 
 // ChildNodes returns children of the Node.
-func (d Document) ChildNodes() []Node {
+func (d *Document) ChildNodes() []Node {
 	return []Node{d.Child}
 }
 
 // Template converts the Node to a string.
-func (d Document) Template() string {
+func (d *Document) Template() string {
 	return fmt.Sprintf("<!DOCTYPE %s>%s",
 		d.Doctype,
 		d.Child.Template())
