@@ -3,78 +3,47 @@ package main
 import (
 	"fmt"
 
-	"github.com/remexre/gotl/ast"
+	"github.com/remexre/gotl/parser"
 )
 
 func main() {
-	fmt.Println(tree.Template())
+	doc, err := parser.Parse("", src)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(doc)
 }
 
-var tree = ast.Document{
-	Doctype: "html",
-	Child: ast.Element{
-		Tag: "html",
-		Attrs: []ast.Attr{
-			ast.Attr{
-				Name:  "lang",
-				Value: ast.StringLiteral("en"),
-			},
-		},
-		Children: []ast.Node{
-			ast.Element{
-				Tag: "head",
-				Children: []ast.Node{
-					ast.Element{
-						Tag: "title",
-						Children: []ast.Node{
-							ast.Text("Hello World"),
-						},
-					},
-				},
-			},
-			ast.Element{
-				Tag: "body",
-				Children: []ast.Node{
-					ast.Element{
-						Tag: "header",
-						Children: []ast.Node{
-							ast.Element{
-								Tag: "h1",
-								Children: []ast.Node{
-									ast.Text("Hello World"),
-								},
-							},
-						},
-					},
-					ast.Element{
-						Tag: "main",
-						Children: []ast.Node{
-							ast.Element{
-								Tag: "section",
-								Children: []ast.Node{
-									ast.Element{
-										Tag: "p",
-										Children: []ast.Node{
-											ast.Text("Alpha"),
-										},
-									},
-								},
-							},
-							ast.Element{
-								Tag: "section",
-								Children: []ast.Node{
-									ast.Element{
-										Tag: "p",
-										Children: []ast.Node{
-											ast.Text("Bravo"),
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	},
-}
+const src = `doctype html
+
+html(lang="en")
+	head
+		title Hello World
+	body
+		header
+			h1 Hello World
+		main
+			section
+				p Alpha
+			section
+				p Bravo`
+
+const expected = `<!DOCTYPE html>` +
+	`<html lang="en">` +
+	`<head>` +
+	`<title>Hello World</title>` +
+	`</head>` +
+	`<body>` +
+	`<header>` +
+	`<h1>Hello World</h1>` +
+	`</header>` +
+	`<main>` +
+	`<section>` +
+	`<p>Alpha</p>` +
+	`</section>` +
+	`<section>` +
+	`<p>Bravo</p>` +
+	`</section>` +
+	`</main>` +
+	`</body>` +
+	`</html>`

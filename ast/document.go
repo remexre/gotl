@@ -5,7 +5,7 @@ import "fmt"
 // A Document is the root of the AST.
 type Document struct {
 	Doctype string
-	Child   Element
+	Child   Node
 }
 
 // ChildNodes returns children of the Node.
