@@ -14,7 +14,7 @@ func Parse(filename, src string) (*ast.Document, error) {
 	lines := strings.Split(src, "\n")
 	protonodes := make([]protonode, 0, len(lines))
 	for lineNum, line := range lines {
-		line = strings.Split(line, "#")[0]
+		line = strings.Split(line, "//")[0]
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
