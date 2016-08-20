@@ -82,11 +82,11 @@ func TestParseCode(t *testing.T) {
 				},
 			})
 		})
-		//
-		// out := document.Template()
-		// Convey("Should parse into the right output", func() {
-		// 	So(out, ShouldEqual, `<!DOCTYPE html><div>{{len "x"}}</div>`)
-		// })
+
+		out := document.Template()
+		Convey("Should parse into the right output", func() {
+			So(out, ShouldEqual, `<!DOCTYPE html><div>{{len "x"}}</div>`)
+		})
 	})
 }
 
