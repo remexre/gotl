@@ -1,9 +1,6 @@
 package parser
 
-import (
-	"fmt"
-	"strings"
-)
+import "fmt"
 
 type protonode struct {
 	file  string
@@ -26,16 +23,21 @@ func (p protonode) Build(ps []protonode) (node, []protonode, error) {
 		}
 		n.children = append(n.children, child)
 	}
+	if len(ps) > 0 && ps[0].level > p.level {
+		errMsg := fmt.Sprintf("invalid indentation (has %d, wanted %d)",
+			ps[0].level, p.level+1)
+		return node{}, nil, ps[0].ErrorAt(0, errMsg)
+	}
 	return n, ps, nil
 }
 
-func (p protonode) ErrorAt(i int, msg string) error {
-	location := fmt.Sprintf("%d:%d", p.line, i+1)
-	if p.file != "" {
-		location = p.file + ":" + location
+func (p protonode) ErrorAt(i int, msg string) *ParseError {
+	return &ParseError{
+		Column:   i + 1,
+		Filename: p.file,
+		Indent:   p.level,
+		LineNum:  p.line,
+		LineText: p.text,
+		Message:  msg,
 	}
-	tabs := strings.Repeat("\t", p.level)
-	spaces := strings.Repeat(" ", i)
-	return fmt.Errorf("Error at [%s]: %s\n\n%s%s\n%s%s^\n",
-		location, msg, tabs, p.text, tabs, spaces)
 }
