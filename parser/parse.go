@@ -9,8 +9,14 @@ import (
 
 // Parse parses a document, returning it or an error.
 func Parse(filename, src string) (*ast.Document, error) {
-	// First, we parse the lines into a series of structures indicating their
-	// depth, removing comments and ignoring blank lines.
+	doctype, root, err := parseNodes(parseProtonodes(filename, src))
+	if err != nil {
+		return nil, err
+	}
+	return parseRoot(doctype, root)
+}
+
+func parseProtonodes(filename, src string) []protonode {
 	lines := strings.Split(src, "\n")
 	protonodes := make([]protonode, 0, len(lines))
 	for lineNum, line := range lines {
@@ -29,29 +35,36 @@ func Parse(filename, src string) (*ast.Document, error) {
 			text:  line[i:],
 		})
 	}
+	return protonodes
+}
 
-	// Next, find the doctype and parse it.
-	var doc *ast.Document
+func parseNodes(protonodes []protonode) (string, node, error) {
+	var doctype string
 	if len(protonodes) == 0 {
-		return nil, fmt.Errorf("Invalid document: no doctype")
-	} else if doctype := protonodes[0].text; doctype != "doctype html" {
-		return nil, fmt.Errorf("Invalid document: invalid doctype: %s", doctype)
+		return "", node{}, fmt.Errorf("Invalid document: no doctype")
+	} else if dt := protonodes[0].text; dt != "doctype html" {
+		return "", node{}, fmt.Errorf("Invalid document: invalid doctype: %s", dt)
 	} else {
-		doc = &ast.Document{Doctype: doctype}
+		doctype = strings.SplitN(dt, " ", 2)[1]
 		protonodes = protonodes[1:]
 	}
 
-	// Then, check to ensure that the structure is "smooth" while building up a
-	// bunch of nodes instead.
 	root, rest, err := protonodes[0].Build(protonodes)
 	if err != nil {
-		return nil, err
+		return "", node{}, err
 	} else if len(rest) != 0 {
-		return nil, rest[0].ErrorAt(0, "unexpected content")
+		return "", node{}, rest[0].ErrorAt(0, "unexpected content")
 	}
+	return doctype, root, err
+}
 
-	// Lastly, convert the nodes to AST nodes, put them into the document, and
-	// return.
-	doc.Child, err = root.ToAst()
-	return doc, err
+func parseRoot(doctype string, root node) (*ast.Document, error) {
+	child, err := root.ToAst()
+	if err != nil {
+		return nil, err
+	}
+	return &ast.Document{
+		Doctype: doctype,
+		Child:   child,
+	}, nil
 }
