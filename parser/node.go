@@ -48,6 +48,7 @@ func parseNode(src string) (ast.Node, int, string) {
 	var classes []string
 	var attrs []ast.Attr
 	var content string
+	var contentIsCode bool
 	for rest != "" {
 		r := []rune(rest)[0]
 		switch r {
@@ -65,6 +66,10 @@ func parseNode(src string) (ast.Node, int, string) {
 		default:
 			if unicode.IsSpace(r) {
 				content = strings.TrimLeftFunc(rest, unicode.IsSpace)
+				rest = ""
+			} else if r == '=' {
+				content = strings.TrimLeftFunc(rest[1:], unicode.IsSpace)
+				contentIsCode = true
 				rest = ""
 			} else {
 				errMsg = "invalid character"
@@ -89,7 +94,13 @@ func parseNode(src string) (ast.Node, int, string) {
 	}
 	element.Attrs = attrs
 	if content != "" {
-		element.Children = append(element.Children, ast.TextNode(content))
+		var n ast.Node
+		if contentIsCode {
+			n = ast.CodeNode(content)
+		} else {
+			n = ast.TextNode(content)
+		}
+		element.Children = append(element.Children, n)
 	}
 	return &element, 0, ""
 }
