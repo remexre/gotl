@@ -38,6 +38,9 @@ func parseNode(src string) (ast.Node, int, string) {
 	if tag == "|" {
 		content := strings.TrimLeftFunc(rest, unicode.IsSpace)
 		return ast.TextNode(content), 0, ""
+	} else if tag == "=" {
+		content := strings.TrimLeftFunc(rest, unicode.IsSpace)
+		return ast.CodeNode(content), 0, ""
 	}
 	element := ast.Element{Tag: tag}
 
