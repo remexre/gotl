@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/remexre/gotl/ast"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -80,43 +81,38 @@ func TestParseParts(t *testing.T) {
 			So(document, ShouldResemble, &ast.Document{
 				Doctype: "html",
 				Child: &ast.Element{
-					Tag:   "one",
-					Attrs: nil,
+					Tag: "one",
 					Children: []ast.Node{
 						&ast.Element{
-							Tag:      "two",
-							Attrs:    nil,
-							Children: nil,
+							Tag: "two",
 						},
 						&ast.Element{
-							Tag:   "three",
-							Attrs: nil,
+							Tag: "three",
 							Children: []ast.Node{
 								&ast.Element{
-									Tag:   "four",
-									Attrs: nil,
+									Tag: "four",
 									Children: []ast.Node{
 										&ast.Element{
-											Tag:      "five",
-											Attrs:    nil,
-											Children: nil,
+											Tag: "five",
 										}},
 								},
 								&ast.Element{
-									Tag:      "six",
-									Attrs:    nil,
-									Children: nil,
+									Tag: "six",
 								},
 								&ast.Element{
-									Tag:      "seven",
-									Attrs:    nil,
-									Children: nil,
+									Tag: "seven",
 								},
 							},
 						},
 					},
 				},
 			})
+		})
+		out := document.Template()
+		Convey("Should parse into the right output", func() {
+			So(out, ShouldEqual, `<!DOCTYPE html><one><two></two><three>`+
+				`<four><five></five></four><six></six><seven></seven></three>`+
+				`</one>`)
 		})
 	})
 	Convey("Invalid input", t, func() {
