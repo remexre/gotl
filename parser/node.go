@@ -58,11 +58,10 @@ func parseNode(src string) (ast.Node, int, string) {
 			var class string
 			class, rest, errI, errMsg = parseTag(rest[1:])
 			classes = append(classes, class)
-		// case '(':
-		// TODO
-		// 	var attr ast.Attr
-		// 	attr, rest, errI, errMsg = parseAttr(src[1:])
-		// 	attrs = append(attrs, attr)
+		case '(':
+			var attr []ast.Attr
+			attr, rest, errI, errMsg = parseAttrs(rest[1:])
+			attrs = append(attrs, attr...)
 		default:
 			if unicode.IsSpace(r) {
 				content = strings.TrimLeftFunc(rest, unicode.IsSpace)
@@ -115,4 +114,36 @@ func parseTag(src string) (tag string, rest string, errI int, errMsg string) {
 		return "", "", 0, "invalid or missing tag"
 	}
 	return src[:i], src[i:], 0, ""
+}
+
+func parseAttrs(src string) (attrs []ast.Attr, rest string, errI int, errMsg string) {
+	var name string
+	name, src, errI, errMsg = parseTag(src)
+	if errMsg != "" {
+		return
+	}
+
+	if src[0] != '=' {
+		errMsg = "invalid character"
+		return
+	}
+
+	if src[1] == '"' {
+		escape := false
+		i := 2
+		for escape || src[i] != '"' {
+			if src[i] == '\\' {
+				escape = true
+			} else {
+				escape = false
+			}
+			i++
+		}
+		attrs = append(attrs, ast.Attr{
+			Name:  name,
+			Value: ast.StringLiteral(src[2:i]),
+		})
+		rest = src[i+2:]
+	}
+	return
 }

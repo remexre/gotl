@@ -1,6 +1,9 @@
 package ast
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
 // A Node is a comment, element or text DOM node.
 type Node interface {
@@ -11,17 +14,39 @@ type Node interface {
 	Template() string
 }
 
+// CodeBlock represents a code node.
+type CodeBlock struct {
+	Code     CodeNode
+	Children []Node
+}
+
+// ChildNodes returns children of the Node.
+func (b *CodeBlock) ChildNodes() []Node {
+	return b.Children
+}
+
+// Template converts the Node to a string.
+func (b *CodeBlock) Template() string {
+	var out bytes.Buffer
+	out.WriteString(b.Code.Template())
+	for _, child := range b.Children {
+		out.WriteString(child.Template())
+	}
+	out.WriteString("{{end}}")
+	return out.String()
+}
+
 // CodeNode represents a code node.
 type CodeNode string
 
 // ChildNodes returns children of the Node.
-func (t CodeNode) ChildNodes() []Node {
+func (c CodeNode) ChildNodes() []Node {
 	return nil
 }
 
 // Template converts the Node to a string.
-func (t CodeNode) Template() string {
-	return fmt.Sprintf("{{%s}}", string(t))
+func (c CodeNode) Template() string {
+	return fmt.Sprintf("{{%s}}", string(c))
 }
 
 // TextNode represents a text node.

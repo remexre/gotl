@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/remexre/gotl/ast"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
