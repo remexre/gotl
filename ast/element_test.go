@@ -13,7 +13,7 @@ func TestElement(t *testing.T) {
 		Attrs: []Attr{
 			Attr{
 				Name:  "id",
-				Value: StringLiteral("main"),
+				Value: []Node{TextNode("main")},
 			},
 		},
 		Children: []Node{child},

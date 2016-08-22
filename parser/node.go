@@ -40,7 +40,7 @@ func parseNode(src []rune) (node ast.Node, i int, err string) {
 	if tag == "|" {
 		content := strings.TrimLeftFunc(string(src[i:]), unicode.IsSpace)
 		return ast.TextNode(content), 0, ""
-	} else if tag == "=" {
+	} else if tag == "|=" {
 		content := strings.TrimLeftFunc(string(src[i:]), unicode.IsSpace)
 		return ast.CodeNode(content), 0, ""
 	}
@@ -62,7 +62,7 @@ func parseNode(src []rune) (node ast.Node, i int, err string) {
 
 	if i < len(src) {
 		c := src[i]
-		content := strings.TrimLeftFunc(string(src[i:]), unicode.IsSpace)
+		content := strings.TrimLeftFunc(string(src[i+1:]), unicode.IsSpace)
 		var childNode ast.Node
 		if unicode.IsSpace(c) {
 			childNode = ast.TextNode(content)
@@ -134,18 +134,15 @@ func parseAttrs(src []rune, i0 int) (attrs []ast.Attr, i int, err string) {
 			err = fmt.Sprintf("Unexpected character %#v in attribute", string(src[i]))
 			return
 		}
-		var value []ast.Node
-		value, i, err = parseAttrValue(src, i)
+		var values []ast.Node
+		values, i, err = parseAttrValues(src, i+1)
 		if err != "" {
 			return
 		}
-		attrs = append(attrs, ast.Attr{Name: name, Value: value})
+		attrs = append(attrs, ast.Attr{Name: name, Value: values})
 
 		if src[i] == ',' {
-			i++
-			for unicode.IsSpace(src[i]) {
-				i++
-			}
+			i = skipWhitespace(src, i+1)
 		} else if src[i] == ')' {
 			i++
 			keepGoing = false
@@ -158,24 +155,70 @@ func parseAttrs(src []rune, i0 int) (attrs []ast.Attr, i int, err string) {
 }
 
 func parseAttrName(src []rune, i0 int) (name string, i int, err string) {
-	i = i0
 	l := len(src)
-	for i < l && isTagCharacter(src[i]) {
-		if src[i] == '=' {
-			name = string(src[i0:i])
-			if len(name) == 0 {
-				err = "missing attribute name"
-			}
-			return
+	for i = i0; i < l && isTagCharacter(src[i]); i++ {
+	}
+	if src[i] == '=' {
+		name = string(src[i0:i])
+		if len(name) == 0 {
+			err = "missing attribute name"
 		}
-		i++
+		return
 	}
 	err = fmt.Sprintf("Unexpected character %#v in attribute name", string(src[i]))
 	return
 }
 
-func parseAttrValue(src []rune, i0 int) (value []ast.Node, i int, err string) {
-	for i = i0; src[i] != ',' && src[i] != ')'; i++ {
+func parseAttrValues(src []rune, i0 int) (values []ast.Node, i int, err string) {
+	i = i0
+	keepGoing := true
+	for keepGoing {
+		i = skipWhitespace(src, i)
+		var value ast.Node
+		switch src[i] {
+		case '"':
+			value, i, err = parseAttrStrValue(src, i0+1)
+		case '(':
+			value, i, err = parseAttrExprValue(src, i0+1)
+		default:
+			err = fmt.Sprintf("Unexpected character %#v in attribute value", string(src[i]))
+			return
+		}
+		values = append(values, value)
+		i = skipWhitespace(src, i)
+		if src[i] != '+' {
+			keepGoing = false
+		}
 	}
+	if src[i] != ')' && src[i] != ',' {
+		err = fmt.Sprintf("Unexpected character %#v in attribute value", string(src[i]))
+	}
+	return
+}
+
+func skipWhitespace(src []rune, i0 int) int {
+	var i int
+	for i = i0; i < len(src) && unicode.IsSpace(src[i]); i++ {
+	}
+	return i
+}
+
+func parseAttrExprValue(src []rune, i0 int) (value ast.Node, i int, err string) {
+	// TODO
+	err = "TODO parseAttrExprValue"
+	return
+}
+
+func parseAttrStrValue(src []rune, i0 int) (value ast.Node, i int, err string) {
+	var escape bool
+	for i = i0; src[i] != '"' || escape; i++ {
+		if src[i] == '\\' {
+			escape = !escape
+		} else {
+			escape = false
+		}
+	}
+	value = ast.TextNode(src[i0:i])
+	i++
 	return
 }
