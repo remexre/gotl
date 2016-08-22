@@ -5,7 +5,6 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/k0kubun/pp"
 	"github.com/remexre/gotl/ast"
 )
 
@@ -58,7 +57,6 @@ func parseNode(src []rune) (node ast.Node, i int, err string) {
 		if i0 == i {
 			break
 		}
-		pp.Println(attr, src[i:])
 		element.Attrs = append(element.Attrs, attr)
 	}
 
