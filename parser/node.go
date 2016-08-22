@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 
+	"github.com/k0kubun/pp"
 	"github.com/remexre/gotl/ast"
 )
 
@@ -13,7 +15,7 @@ type node struct {
 }
 
 func (n node) ToAst() (ast.Node, error) {
-	node, i, errMsg := parseNode(n.text)
+	node, i, errMsg := parseNode([]rune(n.text))
 	if errMsg != "" {
 		return nil, n.ErrorAt(i, errMsg)
 	}
@@ -30,120 +32,90 @@ func (n node) ToAst() (ast.Node, error) {
 	return node, nil
 }
 
-func parseNode(src string) (ast.Node, int, string) {
-	tag, rest, errI, errMsg := parseTag(src)
-	if errMsg != "" {
-		return nil, errI, errMsg
+func parseNode(src []rune) (node ast.Node, i int, err string) {
+	var tag string
+	tag, i, err = parseTag(src, 0)
+	if err != "" {
+		return
 	}
 	if tag == "|" {
-		content := strings.TrimLeftFunc(rest, unicode.IsSpace)
+		content := strings.TrimLeftFunc(string(src[i:]), unicode.IsSpace)
 		return ast.TextNode(content), 0, ""
 	} else if tag == "=" {
-		content := strings.TrimLeftFunc(rest, unicode.IsSpace)
+		content := strings.TrimLeftFunc(string(src[i:]), unicode.IsSpace)
 		return ast.CodeNode(content), 0, ""
 	}
-	element := ast.Element{Tag: tag}
 
-	var id string
-	var classes []string
-	var attrs []ast.Attr
-	var content string
-	var contentIsCode bool
-	for rest != "" {
-		r := []rune(rest)[0]
-		switch r {
-		case '#':
-			id, rest, errI, errMsg = parseTag(rest[1:])
-		case '.':
-			var class string
-			class, rest, errI, errMsg = parseTag(rest[1:])
-			classes = append(classes, class)
-		case '(':
-			var attr []ast.Attr
-			attr, rest, errI, errMsg = parseAttrs(rest[1:])
-			attrs = append(attrs, attr...)
-		default:
-			if unicode.IsSpace(r) {
-				content = strings.TrimLeftFunc(rest, unicode.IsSpace)
-				rest = ""
-			} else if r == '=' {
-				content = strings.TrimLeftFunc(rest[1:], unicode.IsSpace)
-				contentIsCode = true
-				rest = ""
-			} else {
-				errMsg = "invalid character"
-			}
+	element := &ast.Element{Tag: tag}
+	var parsingContent bool
+	for i < len(src) && !parsingContent {
+		i0 := i
+		var attr ast.Attr
+		attr, parsingContent, i, err = parseAttr(src, i)
+		if err != "" {
+			return
 		}
-		if errMsg != "" {
-			return nil, errI, errMsg
+		if i0 == i {
+			break
 		}
+		pp.Println(attr, src[i:])
+		element.Attrs = append(element.Attrs, attr)
 	}
 
-	if id != "" {
-		attrs = append(attrs, ast.Attr{
-			Name:  "id",
-			Value: ast.StringLiteral(id),
-		})
-	}
-	if len(classes) > 0 {
-		attrs = append(attrs, ast.Attr{
-			Name:  "class",
-			Value: ast.StringLiteral(strings.Join(classes, " ")),
-		})
-	}
-	element.Attrs = attrs
-	if content != "" {
-		var n ast.Node
-		if contentIsCode {
-			n = ast.CodeNode(content)
+	if i < len(src) {
+		c := src[i]
+		content := strings.TrimLeftFunc(string(src[i:]), unicode.IsSpace)
+		var childNode ast.Node
+		if unicode.IsSpace(c) {
+			childNode = ast.TextNode(content)
+		} else if c == '=' {
+			childNode = ast.CodeNode(content)
 		} else {
-			n = ast.TextNode(content)
+			err = fmt.Sprintf("Unrecognized character %#v", string(src[i]))
+			return
 		}
-		element.Children = append(element.Children, n)
+		element.Children = append(element.Children, childNode)
 	}
-	return &element, 0, ""
+
+	node = element
+	return
 }
 
-func parseTag(src string) (tag string, rest string, errI int, errMsg string) {
-	i := 0
-	r := []rune(src)
-	for i < len(r) && isTagCharacter(r[i]) {
+func parseTag(src []rune, i0 int) (tag string, i int, err string) {
+	i = i0
+	l := len(src)
+	for i < l && isTagCharacter(src[i]) {
 		i++
 	}
-	if i == 0 {
-		return "", "", 0, "invalid or missing tag"
+	tag = string(src[i0:i])
+	if i == i0 {
+		err = "invalid or missing tag"
 	}
-	return src[:i], src[i:], 0, ""
+	return
 }
 
-func parseAttrs(src string) (attrs []ast.Attr, rest string, errI int, errMsg string) {
-	var name string
-	name, src, errI, errMsg = parseTag(src)
-	if errMsg != "" {
+func parseAttr(src []rune, i0 int) (attr ast.Attr, parsingContent bool, i int, err string) {
+	i = i0
+	switch src[i0] {
+	case '#':
+		var id string
+		id, i, err = parseTag(src, i0+1)
+		attr = ast.Attr{Name: "id", Value: []ast.Node{ast.TextNode(id)}}
+		return
+	case '.':
+		var class string
+		class, i, err = parseTag(src, i0+1)
+		attr = ast.Attr{Name: "class", Value: []ast.Node{ast.TextNode(class)}}
+		return
+	case '=':
+		parsingContent = true
 		return
 	}
 
-	if src[0] != '=' {
-		errMsg = "invalid character"
-		return
-	}
-
-	if src[1] == '"' {
-		escape := false
-		i := 2
-		for escape || src[i] != '"' {
-			if src[i] == '\\' {
-				escape = true
-			} else {
-				escape = false
-			}
-			i++
-		}
-		attrs = append(attrs, ast.Attr{
-			Name:  name,
-			Value: ast.StringLiteral(src[2:i]),
-		})
-		rest = src[i+2:]
+	if unicode.IsSpace(src[i0]) {
+		parsingContent = true
+	} else {
+		err = fmt.Sprintf("Unrecognized character %#v", string(src[i0]))
 	}
 	return
 }

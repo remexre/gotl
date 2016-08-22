@@ -34,7 +34,7 @@ func TestRealistic(t *testing.T) {
 				Attrs: []ast.Attr{
 					ast.Attr{
 						Name:  "lang",
-						Value: ast.StringLiteral("en"),
+						Value: []ast.Node{ast.TextNode("en")},
 					},
 				},
 				Children: []ast.Node{
@@ -52,11 +52,11 @@ func TestRealistic(t *testing.T) {
 								Attrs: []ast.Attr{
 									ast.Attr{
 										Name:  "rel",
-										Value: ast.StringLiteral("stylesheet"),
+										Value: []ast.Node{ast.TextNode("stylesheet")},
 									},
 									ast.Attr{
 										Name:  "href",
-										Value: ast.StringLiteral("/main.css"),
+										Value: []ast.Node{ast.TextNode("/main.css")},
 									},
 								},
 							},
@@ -86,7 +86,7 @@ func TestRealistic(t *testing.T) {
 								Attrs: []ast.Attr{
 									ast.Attr{
 										Name:  "src",
-										Value: ast.StringLiteral("/main.js"),
+										Value: []ast.Node{ast.TextNode("/main.js")},
 									},
 								},
 							},

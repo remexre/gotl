@@ -115,7 +115,7 @@ func TestParseID(t *testing.T) {
 				Attrs: []ast.Attr{
 					ast.Attr{
 						Name:  "id",
-						Value: ast.StringLiteral("x"),
+						Value: []ast.Node{ast.TextNode("x")},
 					},
 				},
 			},
@@ -157,7 +157,7 @@ func TestParseClass(t *testing.T) {
 				Attrs: []ast.Attr{
 					ast.Attr{
 						Name:  "class",
-						Value: ast.StringLiteral("x"),
+						Value: []ast.Node{ast.TextNode("x")},
 					},
 				},
 			},
@@ -199,7 +199,7 @@ func TestParseAttr(t *testing.T) {
 				Attrs: []ast.Attr{
 					ast.Attr{
 						Name:  "x",
-						Value: ast.StringLiteral("y"),
+						Value: []ast.Node{ast.TextNode("y")},
 					},
 				},
 			},

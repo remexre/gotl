@@ -8,7 +8,7 @@ import (
 // Attr represents an HTML attribute.
 type Attr struct {
 	Name  string
-	Value Expr
+	Value []Node
 }
 
 // An Element is an HTML element.
@@ -27,9 +27,11 @@ func (e *Element) ChildNodes() []Node {
 func (e *Element) Template() string {
 	var attrs, children bytes.Buffer
 	for _, attr := range e.Attrs {
-		fmt.Fprintf(&attrs, " %s=\"%s\"",
-			attr.Name,
-			attr.Value.Template())
+		fmt.Fprintf(&attrs, " %s=\"", attr.Name)
+		for _, v := range attr.Value {
+			attrs.WriteString(v.Template())
+		}
+		attrs.WriteByte('"')
 	}
 	for _, child := range e.Children {
 		children.WriteString(child.Template())
