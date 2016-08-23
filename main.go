@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/remexre/gotl/parser"
+	"github.com/remexre/gotl/transforms"
 )
 
 func main() {
@@ -28,6 +29,10 @@ func main() {
 	}
 
 	doc, err := parser.Parse(args.InputFile, string(src))
+	if err != nil {
+		panic(err)
+	}
+	doc, err = transforms.Apply(doc)
 	if err != nil {
 		panic(err)
 	}

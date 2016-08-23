@@ -7,7 +7,7 @@ import (
 
 // A Node is a comment, element or text DOM node.
 type Node interface {
-	// AddChild adds a child node, if possible.
+	// AddChild adds a child node, if possible. Otherwise, a no-op.
 	AddChild(Node)
 
 	// ChildNodes returns children of the Node.
@@ -49,7 +49,6 @@ type CodeNode string
 
 // AddChild adds a child node, if possible.
 func (CodeNode) AddChild(n Node) {
-	panic("CodeNode has no children")
 }
 
 // ChildNodes returns children of the Node.
@@ -67,7 +66,6 @@ type TextNode string
 
 // AddChild adds a child node, if possible.
 func (TextNode) AddChild(n Node) {
-	panic("TextNode has no children")
 }
 
 // ChildNodes returns children of the Node.
