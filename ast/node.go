@@ -7,6 +7,9 @@ import (
 
 // A Node is a comment, element or text DOM node.
 type Node interface {
+	// AddChild adds a child node, if possible.
+	AddChild(Node)
+
 	// ChildNodes returns children of the Node.
 	ChildNodes() []Node
 
@@ -18,6 +21,11 @@ type Node interface {
 type CodeBlock struct {
 	Code     CodeNode
 	Children []Node
+}
+
+// AddChild adds a child node, if possible.
+func (b *CodeBlock) AddChild(n Node) {
+	b.Children = append(b.Children, n)
 }
 
 // ChildNodes returns children of the Node.
@@ -39,8 +47,13 @@ func (b *CodeBlock) Template() string {
 // CodeNode represents a code node.
 type CodeNode string
 
+// AddChild adds a child node, if possible.
+func (CodeNode) AddChild(n Node) {
+	panic("CodeNode has no children")
+}
+
 // ChildNodes returns children of the Node.
-func (c CodeNode) ChildNodes() []Node {
+func (CodeNode) ChildNodes() []Node {
 	return nil
 }
 
@@ -52,8 +65,13 @@ func (c CodeNode) Template() string {
 // TextNode represents a text node.
 type TextNode string
 
+// AddChild adds a child node, if possible.
+func (TextNode) AddChild(n Node) {
+	panic("TextNode has no children")
+}
+
 // ChildNodes returns children of the Node.
-func (t TextNode) ChildNodes() []Node {
+func (TextNode) ChildNodes() []Node {
 	return nil
 }
 

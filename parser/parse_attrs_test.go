@@ -170,7 +170,49 @@ func TestParseClass(t *testing.T) {
 	})
 }
 
-func TestParseAttr(t *testing.T) {
+func TestParseAttrExpr(t *testing.T) {
+	protonodes := parseProtonodes("testParseValid", "doctype html\ndiv(x=(printf \"%#v\" .y))")
+	Convey("Should parse into protonodes", t, func() {
+		So(protonodes, ShouldResemble, []protonode{
+			{"testParseValid", 0, 1, "doctype html"},
+			{"testParseValid", 0, 2, "div(x=(printf \"%#v\" .y))"},
+		})
+	})
+
+	doctype, root, err := parseNodes(protonodes)
+	Convey("Should parse into parse nodes", t, func() {
+		So(err, ShouldBeNil)
+		So(doctype, ShouldEqual, "html")
+		So(root, ShouldResemble, node{
+			protonode{"testParseValid", 0, 2, "div(x=(printf \"%#v\" .y))"},
+			nil,
+		})
+	})
+
+	document, err := parseRoot(doctype, root)
+	Convey("Should parse into a document", t, func() {
+		So(err, ShouldBeNil)
+		So(document, ShouldResemble, &ast.Document{
+			Doctype: "html",
+			Child: &ast.Element{
+				Tag: "div",
+				Attrs: []ast.Attr{
+					ast.Attr{
+						Name:  "x",
+						Value: []ast.Node{ast.CodeNode("printf \"%#v\" .y")},
+					},
+				},
+			},
+		})
+	})
+
+	out := document.Template()
+	Convey("Should parse into the right output", t, func() {
+		So(out, ShouldEqual, `<!DOCTYPE html><div x="{{printf "%#v" .y}}"></div>`)
+	})
+}
+
+func TestParseAttrString(t *testing.T) {
 	protonodes := parseProtonodes("testParseValid", "doctype html\ndiv(x=\"y\")")
 	Convey("Should parse into protonodes", t, func() {
 		So(protonodes, ShouldResemble, []protonode{

@@ -1,0 +1,11 @@
+doctype html
+
+html(lang="en")
+	head
+		title Example Page
+		link(rel="stylesheet", href="/main.css")
+	body
+		ul
+			range $item in .List
+				li= printf "%#v" $item
+		script(src="/main.js")

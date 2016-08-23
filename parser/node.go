@@ -172,7 +172,7 @@ func parseAttrName(src []rune, i0 int) (name string, i int, err string) {
 func parseAttrValues(src []rune, i0 int) (values []ast.Node, i int, err string) {
 	i = i0
 	keepGoing := true
-	for keepGoing {
+	for i < len(src) && keepGoing {
 		i = skipWhitespace(src, i)
 		var value ast.Node
 		switch src[i] {
@@ -204,8 +204,20 @@ func skipWhitespace(src []rune, i0 int) int {
 }
 
 func parseAttrExprValue(src []rune, i0 int) (value ast.Node, i int, err string) {
-	// TODO
-	err = "TODO parseAttrExprValue"
+	i = i0
+	nesting := 1
+	for i < len(src) && nesting > 0 {
+		if src[i] == '(' {
+			nesting++
+		} else if src[i] == ')' {
+			nesting--
+		}
+		i++
+	}
+	value = ast.CodeNode(src[i0 : i-1])
+	if i == len(src) {
+		err = "unclosed expression"
+	}
 	return
 }
 

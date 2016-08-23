@@ -11,11 +11,9 @@ import (
 )
 
 func main() {
-	var outputFile string
-	flag.StringVar(&outputFile, "out", "", "The file to write output to.")
-	flag.Parse()
+	args := parseArgs()
 
-	in, inFile, err := getInput()
+	in, err := args.getInput()
 	if err != nil {
 		panic(err)
 	}
@@ -29,12 +27,12 @@ func main() {
 		panic(err)
 	}
 
-	doc, err := parser.Parse(inFile, string(src))
+	doc, err := parser.Parse(args.InputFile, string(src))
 	if err != nil {
 		panic(err)
 	}
 
-	out, err := getOutput(outputFile)
+	out, err := args.getOutput()
 	if err != nil {
 		panic(err)
 	}
@@ -48,22 +46,36 @@ func main() {
 	}
 }
 
-func getInput() (io.ReadCloser, string, error) {
-	if flag.NArg() == 0 {
-		return os.Stdin, "", nil
-	} else if flag.NArg() == 1 {
-		file, err := os.Open(flag.Arg(0))
-		return file, flag.Arg(0), err
-	}
-
-	flag.Usage()
-	os.Exit(0)
-	return nil, "", flag.ErrHelp
+// Args is a type for the arguments needed.
+type Args struct {
+	InputFile  string
+	OutputFile string
 }
 
-func getOutput(outputFile string) (io.WriteCloser, error) {
-	if outputFile == "" {
+func parseArgs() *Args {
+	a := new(Args)
+	flag.StringVar(&a.OutputFile, "out", "", "The file to write output to.")
+	flag.Parse()
+	if flag.NArg() == 1 {
+		a.InputFile = flag.Arg(0)
+	} else if flag.NArg() > 1 {
+		flag.Usage()
+		os.Exit(-1)
+	}
+	return a
+}
+
+func (a *Args) getInput() (io.ReadCloser, error) {
+	if a.InputFile == "" {
+		return os.Stdin, nil
+	}
+	file, err := os.Open(flag.Arg(0))
+	return file, err
+}
+
+func (a *Args) getOutput() (io.WriteCloser, error) {
+	if a.OutputFile == "" {
 		return os.Stdout, nil
 	}
-	return os.OpenFile(outputFile, os.O_WRONLY, 0644)
+	return os.OpenFile(a.OutputFile, os.O_WRONLY, 0644)
 }

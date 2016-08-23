@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"html/template"
+	"io/ioutil"
 	"testing"
 
 	"github.com/remexre/gotl/ast"
@@ -11,20 +12,17 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-const realisticTest = `doctype html
-
-html(lang="en")
-	head
-		title Example Page
-		link(rel="stylesheet", href="/main.css")
-	body
-		ul
-			range $item in .List
-				li= printf "%#v" $item
-		script(src="/main.js")`
-
 func TestRealistic(t *testing.T) {
-	doc, err := parser.Parse("realistic.gotl", realisticTest)
+	testIn, err := ioutil.ReadFile("realistic_test.gotl")
+	if err != nil {
+		panic(err)
+	}
+	testHTML, err := ioutil.ReadFile("realistic_test.html")
+	if err != nil {
+		panic(err)
+	}
+
+	doc, err := parser.Parse("realistic_test.gotl", string(testIn))
 	Convey("Parses correctly", t, func() {
 		So(err, ShouldBeNil)
 		So(doc, ShouldResemble, &ast.Document{
@@ -99,11 +97,7 @@ func TestRealistic(t *testing.T) {
 
 	html := doc.Template()
 	Convey("Has correct output", t, func() {
-		So(html, ShouldEqual, `<!DOCTYPE html><html lang="en"><head><title>`+
-			`Example Page</title><link rel="stylesheet" href="/main.css">`+
-			`</link></head><body><ul>{{range $item := .List}}<li>`+
-			`{{printf "%#v" $item}}</li>{{end}}</ul><script src="/main.js">`+
-			`</script></body></html>`)
+		So(html, ShouldEqual, string(testHTML))
 	})
 
 	templ, err := template.New("realistic.gotl").Parse(html)
@@ -123,6 +117,6 @@ func TestRealistic(t *testing.T) {
 	out := outBuf.String()
 	Convey("Template has correct output", t, func() {
 		So(err, ShouldBeNil)
-		So(out, ShouldEqual, "")
+		So(out, ShouldEqual, "TODO")
 	})
 }

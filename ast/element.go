@@ -18,6 +18,11 @@ type Element struct {
 	Children []Node
 }
 
+// AddChild adds a child node, if possible.
+func (e *Element) AddChild(n Node) {
+	e.Children = append(e.Children, n)
+}
+
 // ChildNodes returns children of the Node.
 func (e *Element) ChildNodes() []Node {
 	return e.Children
