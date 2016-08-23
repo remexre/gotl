@@ -18,6 +18,6 @@ func TestDocument(t *testing.T) {
 		})
 	})
 	Convey("Template", t, func() {
-		So(doc.Template(), ShouldEqual, "<!DOCTYPE html>child node")
+		So(doc.Template(), ShouldEqual, "<!DOCTYPE html>child node\n")
 	})
 }

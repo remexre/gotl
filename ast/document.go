@@ -15,7 +15,7 @@ func (d *Document) ChildNodes() []Node {
 
 // Template converts the Node to a string.
 func (d *Document) Template() string {
-	return fmt.Sprintf("<!DOCTYPE %s>%s",
+	return fmt.Sprintf("<!DOCTYPE %s>%s\n",
 		d.Doctype,
 		d.Child.Template())
 }

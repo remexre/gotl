@@ -110,9 +110,9 @@ func TestParseParts(t *testing.T) {
 		})
 		out := document.Template()
 		Convey("Should parse into the right output", func() {
-			So(out, ShouldEqual, `<!DOCTYPE html><one><two></two><three>`+
-				`<four><five></five></four><six></six><seven></seven></three>`+
-				`</one>`)
+			So(out, ShouldEqual, "<!DOCTYPE html><one><two></two><three>"+
+				"<four><five></five></four><six></six><seven></seven></three>"+
+				"</one>\n")
 		})
 	})
 	Convey("Invalid input", t, func() {

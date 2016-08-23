@@ -53,6 +53,6 @@ func TestLiteralTagThingy(t *testing.T) {
 
 	out := doc.Template()
 	Convey("Should parse into the right output", t, func() {
-		So(out, ShouldEqual, "<!DOCTYPE html><p>literal text</p>")
+		So(out, ShouldEqual, "<!DOCTYPE html><p>literal text</p>\n")
 	})
 }

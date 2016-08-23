@@ -16,7 +16,8 @@ func Apply(doc *ast.Document) (*ast.Document, error) {
 // ApplyAll applies all transformations to the given AST.
 func ApplyAll(node ast.Node) (ast.Node, error) {
 	for _, t := range []Transform{
-	//TODO
+		rangeTransform{},
+		// TODO Other transforms.
 	} {
 		var err error
 		node, err = ApplyOne(t, node)
@@ -47,13 +48,18 @@ func ApplyOne(t Transform, root ast.Node) (out ast.Node, err error) {
 		return
 	}
 
-	for _, child := range root.ChildNodes() {
+	var newChildren []ast.Node
+	for _, child := range out.ChildNodes() {
 		var outChild ast.Node
 		outChild, err = ApplyOne(t, child)
 		if err != nil {
 			return
 		}
-		out.AddChild(outChild)
+		newChildren = append(newChildren, outChild)
+	}
+	out = out.Empty()
+	for _, child := range newChildren {
+		out.AddChild(child)
 	}
 	return
 }

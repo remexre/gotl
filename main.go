@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -13,42 +12,21 @@ import (
 
 func main() {
 	args := parseArgs()
-
-	in, err := args.getInput()
-	if err != nil {
+	if err := args.process(); err != nil {
 		panic(err)
 	}
+}
 
-	src, err := ioutil.ReadAll(in)
+func compile(filename, src string) (string, error) {
+	doc, err := parser.Parse(filename, src)
 	if err != nil {
-		panic(err)
-	}
-	err = in.Close()
-	if err != nil {
-		panic(err)
-	}
-
-	doc, err := parser.Parse(args.InputFile, string(src))
-	if err != nil {
-		panic(err)
+		return "", err
 	}
 	doc, err = transforms.Apply(doc)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-
-	out, err := args.getOutput()
-	if err != nil {
-		panic(err)
-	}
-	_, err = fmt.Fprint(out, doc.Template())
-	if err != nil {
-		panic(err)
-	}
-	err = out.Close()
-	if err != nil {
-		panic(err)
-	}
+	return doc.Template(), nil
 }
 
 // Args is a type for the arguments needed.
@@ -83,4 +61,31 @@ func (a *Args) getOutput() (io.WriteCloser, error) {
 		return os.Stdout, nil
 	}
 	return os.OpenFile(a.OutputFile, os.O_WRONLY, 0644)
+}
+
+func (a *Args) process() error {
+	in, err := a.getInput()
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	src, err := ioutil.ReadAll(in)
+	if err != nil {
+		return err
+	}
+
+	html, err := compile(a.InputFile, string(src))
+	if err != nil {
+		return err
+	}
+
+	out, err := a.getOutput()
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.WriteString(out, html)
+	return err
 }

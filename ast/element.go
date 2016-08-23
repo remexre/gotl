@@ -28,6 +28,15 @@ func (e *Element) ChildNodes() []Node {
 	return e.Children
 }
 
+// Empty removes any and all child nodes.
+func (e *Element) Empty() Node {
+	return &Element{
+		Tag:      e.Tag,
+		Attrs:    e.Attrs,
+		Children: nil,
+	}
+}
+
 // Template converts the Node to a string.
 func (e *Element) Template() string {
 	var attrs, children bytes.Buffer

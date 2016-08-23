@@ -43,7 +43,7 @@ func TestParseContent(t *testing.T) {
 
 	out := document.Template()
 	Convey("Should parse into the right output", t, func() {
-		So(out, ShouldEqual, `<!DOCTYPE html><div>x</div>`)
+		So(out, ShouldEqual, "<!DOCTYPE html><div>x</div>\n")
 	})
 }
 
@@ -82,7 +82,7 @@ func TestParseCode(t *testing.T) {
 
 	out := document.Template()
 	Convey("Should parse into the right output", t, func() {
-		So(out, ShouldEqual, `<!DOCTYPE html><div>{{len "x"}}</div>`)
+		So(out, ShouldEqual, "<!DOCTYPE html><div>{{len \"x\"}}</div>\n")
 	})
 }
 
@@ -124,7 +124,7 @@ func TestParseID(t *testing.T) {
 
 	out := document.Template()
 	Convey("Should parse into the right output", t, func() {
-		So(out, ShouldEqual, `<!DOCTYPE html><div id="x"></div>`)
+		So(out, ShouldEqual, "<!DOCTYPE html><div id=\"x\"></div>\n")
 	})
 }
 
@@ -166,7 +166,7 @@ func TestParseClass(t *testing.T) {
 
 	out := document.Template()
 	Convey("Should parse into the right output", t, func() {
-		So(out, ShouldEqual, `<!DOCTYPE html><div class="x"></div>`)
+		So(out, ShouldEqual, "<!DOCTYPE html><div class=\"x\"></div>\n")
 	})
 }
 
@@ -208,7 +208,7 @@ func TestParseAttrExpr(t *testing.T) {
 
 	out := document.Template()
 	Convey("Should parse into the right output", t, func() {
-		So(out, ShouldEqual, `<!DOCTYPE html><div x="{{printf "%#v" .y}}"></div>`)
+		So(out, ShouldEqual, "<!DOCTYPE html><div x=\"{{printf \"%#v\" .y}}\"></div>\n")
 	})
 }
 
@@ -250,6 +250,6 @@ func TestParseAttrString(t *testing.T) {
 
 	out := document.Template()
 	Convey("Should parse into the right output", t, func() {
-		So(out, ShouldEqual, `<!DOCTYPE html><div x="y"></div>`)
+		So(out, ShouldEqual, "<!DOCTYPE html><div x=\"y\"></div>\n")
 	})
 }

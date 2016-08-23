@@ -13,6 +13,9 @@ type Node interface {
 	// ChildNodes returns children of the Node.
 	ChildNodes() []Node
 
+	// Empty returns a new Node devoid of any and all child nodes.
+	Empty() Node
+
 	// Template converts the Node to a string.
 	Template() string
 }
@@ -31,6 +34,14 @@ func (b *CodeBlock) AddChild(n Node) {
 // ChildNodes returns children of the Node.
 func (b *CodeBlock) ChildNodes() []Node {
 	return b.Children
+}
+
+// Empty returns a new Node devoid of any and all child nodes.
+func (b *CodeBlock) Empty() Node {
+	return &CodeBlock{
+		Code:     b.Code,
+		Children: nil,
+	}
 }
 
 // Template converts the Node to a string.
@@ -56,6 +67,9 @@ func (CodeNode) ChildNodes() []Node {
 	return nil
 }
 
+// Empty returns a new Node devoid of any and all child nodes.
+func (c CodeNode) Empty() Node { return c }
+
 // Template converts the Node to a string.
 func (c CodeNode) Template() string {
 	return fmt.Sprintf("{{%s}}", string(c))
@@ -72,6 +86,9 @@ func (TextNode) AddChild(n Node) {
 func (TextNode) ChildNodes() []Node {
 	return nil
 }
+
+// Empty returns a new Node devoid of any and all child nodes.
+func (t TextNode) Empty() Node { return t }
 
 // Template converts the Node to a string.
 func (t TextNode) Template() string {
